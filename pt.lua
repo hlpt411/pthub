@@ -2432,12 +2432,12 @@ QuestNeta = function()
                     return lib
                 end
             else
-                warn("[vihieu Hub] Erro loadstring UI:", loadErr)
+                warn("[Pt Hub] Erro loadstring UI:", loadErr)
             end
         end
     end
 
-    error("[vi hieu Hub] Não foi possível carregar a biblioteca da UI.")
+    error("[Pt Hub] Não foi possível carregar a biblioteca da UI.")
 end
 
 	local Library = LoadAnimeMobUILibrary():MakeWindow({
@@ -2606,7 +2606,7 @@ local Setting = Library:MakeTab({
     Icon = "rbxassetid://7734053495"
 })
 Discord:AddDiscordInvite({
-    Name = "vi hieuHub",
+    Name = "Pt hub",
     Description = "Join for support and updates",
     Logo = "rbxassetid://131983967040060",
     Invite = "https://discord.gg/DzmYysnRN"
@@ -4347,7 +4347,7 @@ Setting:AddButton({
             
             -- Notificação Universal (Funciona sem a lib Fluent)
             game.StarterGui:SetCore("SendNotification", {
-                Title = "vi hieu Hub",
+                Title = "Pt Hub",
                 Text = "Configurações salvas com sucesso!",
                 Duration = 5
             })
@@ -4368,13 +4368,13 @@ Setting:AddButton({
             
             -- Notificação Universal
             game.StarterGui:SetCore("SendNotification", {
-                Title = "vi hieu Hub",
+                Title = "Pt Hub",
                 Text = "Configurações resetadas! Re-execute o script.",
                 Duration = 5
             })
         else
             game.StarterGui:SetCore("SendNotification", {
-                Title = "vi hieu Hub",
+                Title = "Pt Hub",
                 Text = "Nenhum arquivo de save encontrado para apagar.",
                 Duration = 3
             })
