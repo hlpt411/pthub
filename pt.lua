@@ -91,10 +91,7 @@ local function NotificacaoNightMystic(titulo, mensagem)
     end
 end
 
-NotificacaoNightMystic("vi hieu Hub", "Script carregado com sucesso!")
-
--- Garante que o jogo carregou antes de procurar remotes/character.
--- Isso evita o bug onde só a notificação aparece e a UI nunca abre.
+NotificacaoNightMystic("Pt hub", "Script is excuted successful!")
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
@@ -103,7 +100,7 @@ end
 -- SAVE SYSTEM (Optimized)
 -- ========================================
 local HttpService = Services.HttpService
-local FolderName = "vi hieu Hub"
+local FolderName = "pt hub"
 local FileName = "Settings.json"
 local FullPath = FolderName .. "/" .. FileName
 
@@ -12165,6 +12162,6 @@ end)
 _ENV.rz_FastAttack = FastAttack
 FastAttackModule.FastAttack = FastAttack
 
-NotificacaoNightMystic(" vi hieu Hub", "✅ Todos os sistemas carregados!")
+NotificacaoNightMystic(" Pt Hub", "✅ Todos os sistemas carregados!")
 
 return FastAttackModulem
