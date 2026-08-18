@@ -1397,8 +1397,8 @@ Fluent:SetTheme("Dark")
 
 
 local Window = Fluent:CreateWindow({
-    Title = "W-Azeox [Freeminu]",
-    SubTitle = "By @z._h. In Discord",
+    Title = "Pt Hub [Premium]",
+    SubTitle = "By Pt",
     TabWidth = IsMobile and 130 or 160,
     Size = IsMobile and UDim2.fromOffset(480, 490) or UDim2.fromOffset(580, 440),
     Acrylic = false,
@@ -1407,7 +1407,7 @@ local Window = Fluent:CreateWindow({
     MinimizeKey = Enum.KeyCode.LeftControl,
 
     UserInfoTop = true,
-    UserInfoTitle = "https://zeox.xyz/",
+    UserInfoTitle = "hlpt411.tiiny.site",
     UserInfoSubtitle = LocalPlayer.DisplayName,
     UserInfoColor = Color3.fromRGB(255, 255, 255),
 })
