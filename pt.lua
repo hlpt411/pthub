@@ -1322,29 +1322,29 @@ local IsMobile = UserInputService.TouchEnabled and not UserInputService.Keyboard
 
 Fluent:RegisterCustomTheme("Dark", {
     -- Tông midnight-blue, điểm nhấn cyan cho sinh động
-    Accent = Color3.fromRGB(0, 200, 255),
+    Accent = Color3.fromRGB(64, 156, 255),
 
-    AcrylicMain = Color3.fromRGB(7, 8, 12),
-    AcrylicBorder = Color3.fromRGB(24, 28, 38),
-    AcrylicGradient = ColorSequence.new(Color3.fromRGB(12, 15, 24), Color3.fromRGB(6, 8, 14)),
+    AcrylicMain = Color3.fromRGB(8, 12, 22),
+    AcrylicBorder = Color3.fromRGB(26, 34, 52),
+    AcrylicGradient = ColorSequence.new(Color3.fromRGB(14, 20, 34), Color3.fromRGB(6, 10, 20)),
     AcrylicNoise = 0,
 
     TitleBarLine = Color3.fromRGB(28, 34, 48),
-    Tab = Color3.fromRGB(22, 26, 36),
+    Tab = Color3.fromRGB(20, 27, 42),
 
-    Element = Color3.fromRGB(11, 13, 19),
+    Element = Color3.fromRGB(12, 16, 26),
     ElementBorder = Color3.fromRGB(30, 36, 50),
-    InElementBorder = Color3.fromRGB(0, 140, 200),
+    InElementBorder = Color3.fromRGB(30, 82, 210),
     ElementTransparency = 0,
 
     ToggleSlider = Color3.fromRGB(38, 44, 60),
-    ToggleToggled = Color3.fromRGB(0, 200, 255),
+    ToggleToggled = Color3.fromRGB(64, 156, 255),
 
     SliderRail = Color3.fromRGB(38, 44, 60),
 
-    DropdownFrame = Color3.fromRGB(11, 13, 19),
+    DropdownFrame = Color3.fromRGB(12, 16, 26),
     DropdownHolder = Color3.fromRGB(10, 12, 18),
-    DropdownBorder = Color3.fromRGB(0, 140, 200),
+    DropdownBorder = Color3.fromRGB(30, 82, 210),
     DropdownOption = Color3.fromRGB(22, 27, 38),
 
     Keybind = Color3.fromRGB(22, 27, 38),
@@ -1352,16 +1352,16 @@ Fluent:RegisterCustomTheme("Dark", {
     Input = Color3.fromRGB(12, 15, 22),
     InputFocused = Color3.fromRGB(8, 10, 16),
     InputIndicator = Color3.fromRGB(60, 70, 90),
-    InputIndicatorFocus = Color3.fromRGB(0, 200, 255),
+    InputIndicatorFocus = Color3.fromRGB(64, 156, 255),
 
     Dialog = Color3.fromRGB(10, 12, 18),
     DialogHolder = Color3.fromRGB(8, 10, 15),
     DialogHolderLine = Color3.fromRGB(26, 31, 44),
     DialogButton = Color3.fromRGB(16, 19, 28),
     DialogButtonBorder = Color3.fromRGB(34, 40, 55),
-    DialogBorder = Color3.fromRGB(0, 140, 200),
+    DialogBorder = Color3.fromRGB(30, 82, 210),
     DialogInput = Color3.fromRGB(12, 15, 22),
-    DialogInputLine = Color3.fromRGB(0, 200, 255),
+    DialogInputLine = Color3.fromRGB(64, 156, 255),
 
     Text = Color3.fromRGB(226, 232, 240),
     SubText = Color3.fromRGB(140, 155, 180),
@@ -1376,7 +1376,7 @@ Fluent:RegisterCustomTheme("Dark", {
         ColorSequence = ColorSequence.new(Color3.fromRGB(0, 0, 0), Color3.fromRGB(0, 0, 0)),
     },
     StrokeShine = false,
-    StrokeDark = Color3.fromRGB(0, 140, 200),
+    StrokeDark = Color3.fromRGB(30, 82, 210),
 
     ButtonGradient = {
         Background = ColorSequence.new({
@@ -1384,15 +1384,15 @@ Fluent:RegisterCustomTheme("Dark", {
             ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 12, 18)),
         }),
         Stroke = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 120, 180)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 220, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 120, 180)),
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 70, 200)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(64, 156, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 70, 200)),
         }),
     },
 
-    Background = "rbxassetid://89833510731367",
-    BackgroundTransparency = 0,
-    ThemeAccentColors = { Color3.fromRGB(0, 200, 255) },
+    Background = "",
+    BackgroundTransparency = 1,
+    ThemeAccentColors = { Color3.fromRGB(64, 156, 255) },
 })
 
 Fluent:SetTheme("Dark")
@@ -1472,7 +1472,7 @@ uiCorner.Parent = toggleButton
 
 local uiStroke = Instance.new("UIStroke")
 uiStroke.Thickness = 2
-uiStroke.Color = Color3.fromRGB(0, 200, 255)
+uiStroke.Color = Color3.fromRGB(64, 156, 255)
 uiStroke.Parent = toggleButton
 
 -- Gradient nền cho nút có chiều sâu
@@ -1489,7 +1489,7 @@ local btnScale = Instance.new("UIScale")
 btnScale.Scale = 1
 btnScale.Parent = toggleButton
 
-local STROKE_COLOR = Color3.fromRGB(0, 200, 255)
+local STROKE_COLOR = Color3.fromRGB(64, 156, 255)
 -- Khai báo trước để các closure bên dưới dùng chung
 local dragging = false
 local dragInput
