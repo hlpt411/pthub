@@ -1411,7 +1411,82 @@ local Window = Fluent:CreateWindow({
     UserInfoSubtitle = LocalPlayer.DisplayName,
     UserInfoColor = Color3.fromRGB(255, 255, 255),
 })
+-- ==========================================
+-- TẠO NÚT TRÒN NỔI BẬT/TẮT MENU
+-- ==========================================
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "PT_Hub_Toggle_Button"
+screenGui.ResetOnSpawn = false
+pcall(function()
+    screenGui.Parent = game:GetService("CoreGui")
+end)
+if not screenGui.Parent then
+    screenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+end
 
+local toggleButton = Instance.new("ImageButton")
+toggleButton.Size = UDim2.new(0, 50, 0, 50)
+toggleButton.Position = UDim2.new(0.1, 0, 0.5, 0)
+toggleButton.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+toggleButton.BackgroundTransparency = 0.2
+toggleButton.Image = "rbxassetid://131983967040060" -- Ảnh logo PT Hub
+toggleButton.Parent = screenGui
+
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(1, 0)
+uiCorner.Parent = toggleButton
+
+local uiStroke = Instance.new("UIStroke")
+uiStroke.Thickness = 2
+uiStroke.Color = Color3.fromRGB(0, 191, 255)
+uiStroke.Parent = toggleButton
+
+local UserInputService = game:GetService("UserInputService")
+local dragging = false
+local dragInput
+local dragStart
+local startPos
+
+toggleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = toggleButton.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+toggleButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        toggleButton.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+local VirtualInputManager = game:GetService("VirtualInputManager")
+toggleButton.MouseButton1Click:Connect(function()
+    uiStroke.Color = Color3.fromRGB(255, 255, 255)
+    task.wait(0.1)
+    uiStroke.Color = Color3.fromRGB(0, 191, 255)
+    
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
+    task.wait(0.05)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftControl, false, game)
+end)
 -- UI scale helper (Fluent has no built-in SetUIScale)
 local function SetUIScale(scale)
     pcall(function()
