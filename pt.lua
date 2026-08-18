@@ -1324,15 +1324,15 @@ Fluent:RegisterCustomTheme("Dark", {
     -- Tông midnight-blue, điểm nhấn cyan cho sinh động
     Accent = Color3.fromRGB(0, 200, 255),
 
-    AcrylicMain = Color3.fromRGB(10, 12, 18),
+    AcrylicMain = Color3.fromRGB(7, 8, 12),
     AcrylicBorder = Color3.fromRGB(24, 28, 38),
     AcrylicGradient = ColorSequence.new(Color3.fromRGB(12, 15, 24), Color3.fromRGB(6, 8, 14)),
-    AcrylicNoise = 0.9,
+    AcrylicNoise = 0,
 
     TitleBarLine = Color3.fromRGB(28, 34, 48),
     Tab = Color3.fromRGB(22, 26, 36),
 
-    Element = Color3.fromRGB(16, 19, 28),
+    Element = Color3.fromRGB(11, 13, 19),
     ElementBorder = Color3.fromRGB(30, 36, 50),
     InElementBorder = Color3.fromRGB(0, 140, 200),
     ElementTransparency = 0,
@@ -1342,7 +1342,7 @@ Fluent:RegisterCustomTheme("Dark", {
 
     SliderRail = Color3.fromRGB(38, 44, 60),
 
-    DropdownFrame = Color3.fromRGB(16, 19, 28),
+    DropdownFrame = Color3.fromRGB(11, 13, 19),
     DropdownHolder = Color3.fromRGB(10, 12, 18),
     DropdownBorder = Color3.fromRGB(0, 140, 200),
     DropdownOption = Color3.fromRGB(22, 27, 38),
@@ -1363,7 +1363,7 @@ Fluent:RegisterCustomTheme("Dark", {
     DialogInput = Color3.fromRGB(12, 15, 22),
     DialogInputLine = Color3.fromRGB(0, 200, 255),
 
-    Text = Color3.fromRGB(240, 248, 255),
+    Text = Color3.fromRGB(226, 232, 240),
     SubText = Color3.fromRGB(140, 155, 180),
     Hover = Color3.fromRGB(24, 30, 42),
     HoverChange = 0.05,
@@ -1396,6 +1396,33 @@ Fluent:RegisterCustomTheme("Dark", {
 })
 
 Fluent:SetTheme("Dark")
+
+-- ==========================================================
+-- BOOST FPS / LOW END MODE  (toi uu may yeu)
+-- ==========================================================
+getgenv().LowEndMode = getgenv().LowEndMode or false
+
+local function ApplyLowEnd()
+    local low = getgenv().LowEndMode
+    pcall(function()
+        local rs = settings():GetService("RenderSettings")
+        rs.QualityLevel = low and Enum.QualityLevel.Level01 or Enum.QualityLevel.Level07
+        rs.MaterialQuality = low and Enum.MaterialQuality.Low or Enum.MaterialQuality.High
+    end)
+    pcall(function()
+        local Lighting = game:GetService("Lighting")
+        Lighting.GlobalShadows = not low
+        Lighting.FogEnd = low and 3000 or 100000
+        Lighting.Brightness = low and 2.5 or 2
+        for _, v in pairs(Lighting:GetChildren()) do
+            if v:IsA("PostEffect") then
+                v.Enabled = not low
+            end
+        end
+    end)
+end
+ApplyLowEnd()
+
 
 
 local Window = Fluent:CreateWindow({
@@ -1566,119 +1593,86 @@ Tabs.Info:AddSection("Information")
 Tabs.Info:AddSection("Status Server")
 
 local TimeZone = Tabs.Info:AddParagraph({ Title = "Time Zone", Content = "" })
+local GameTime = Tabs.Info:AddParagraph({ Title = "Game Time", Content = "" })
+local MirageCheck = Tabs.Info:AddParagraph({ Title = "Mirage Island", Content = "Status: " })
+local KitsuneCheck = Tabs.Info:AddParagraph({ Title = "Kitsune Island", Content = "Status: " })
+local PrehistoricCheck = Tabs.Info:AddParagraph({ Title = "Prehistoric Island", Content = "Status: " })
+local FrozenCheck = Tabs.Info:AddParagraph({ Title = "Frozen Dimension", Content = "Status: " })
+local CakePrinceStatus = Tabs.Info:AddParagraph({ Title = "Cake Prince", Content = "" })
+local RipIndraCheck = Tabs.Info:AddParagraph({ Title = "Rip Indra", Content = "Status: " })
+local DoughKingCheck = Tabs.Info:AddParagraph({ Title = "Dough King", Content = "Status: " })
+local FullMoonCheck = Tabs.Info:AddParagraph({ Title = "Full Moon", Content = "" })
+local LegendarySwordCheck = Tabs.Info:AddParagraph({ Title = "Legendary Sword", Content = "Status: " })
+local BoneCount = Tabs.Info:AddParagraph({ Title = "Bone", Content = "" })
 
-function UpdateOS()
+local previousMirageStatus, previousKitsuneStatus = "", ""
+local previousPrehistoricStatus, previousFrozenStatus = "", ""
+local previousRipStatus, previousDoughStatus = "", ""
+
+local function UpdateOS()
     local date = os.date("*t")
-    local hour = (date.hour) % 24
+    local hour = date.hour % 24
     local ampm = hour < 12 and "AM" or "PM"
     local timezone = string.format("%02i:%02i:%02i %s", ((hour - 1) % 12) + 1, date.min, date.sec, ampm)
-    local datetime = string.format("%02d/%02d/%04d", date.day, date.month, date.year)    
-    
-    local LocalizationService = game:GetService("LocalizationService")
-    local Players = game:GetService("Players")
-    local player = Players.LocalPlayer
-    local result, code    
-    
-    if not getgenv().countryRegionCode then
-        result, code = pcall(function()
-            return LocalizationService:GetCountryRegionForPlayerAsync(player)
-        end)
-        if result then
-            getgenv().countryRegionCode = code
-        else
-            getgenv().countryRegionCode = "Unknown"
-        end
-    else
+    local datetime = string.format("%02d/%02d/%04d", date.day, date.month, date.year)
+    local code = "Unknown"
+    if getgenv().countryRegionCode then
         code = getgenv().countryRegionCode
+    else
+        local ok, region = pcall(function()
+            return game:GetService("LocalizationService"):GetCountryRegionForPlayerAsync(game:GetService("Players").LocalPlayer)
+        end)
+        if ok and region then
+            getgenv().countryRegionCode = region
+            code = region
+        end
     end
-    
-    TimeZone:SetDesc(datetime.." - "..timezone.." [ " .. code .. " ]")
+    TimeZone:SetDesc(datetime .. " - " .. timezone .. " [ " .. code .. " ]")
 end
 
-spawn(function()
-    while true do
-        UpdateOS()
-        wait(1)
-    end
-end)
-
-local GameTime = Tabs.Info:AddParagraph({ Title = "Game Time", Content = "" })
-
-function UpdateGameTime()
+local function UpdateGameTime()
     local GameTimeValue = math.floor(workspace.DistributedGameTime + 0.5)
-    local Hour = math.floor(GameTimeValue / (60^2)) % 24
-    local Minute = math.floor(GameTimeValue / (60^1)) % 60
-    local Second = math.floor(GameTimeValue / (60^0)) % 60
-    GameTime:SetDesc(Hour.." Hour (h) "..Minute.." Minute (m) "..Second.." Second (s)")
+    local Hour = math.floor(GameTimeValue / (60 ^ 2)) % 24
+    local Minute = math.floor(GameTimeValue / (60 ^ 1)) % 60
+    local Second = math.floor(GameTimeValue / (60 ^ 0)) % 60
+    GameTime:SetDesc(Hour .. " Hour (h) " .. Minute .. " Minute (m) " .. Second .. " Second (s)")
 end
 
-spawn(function()
-    while true do
-        UpdateGameTime()
-        wait(1)
+local function UpdateMirage()
+    local exists = game.Workspace._WorldOrigin.Locations:FindFirstChild("Mirage Island") ~= nil
+    local status = exists and "✅" or "❌"
+    if status ~= previousMirageStatus then
+        MirageCheck:SetDesc("Status: " .. status)
+        previousMirageStatus = status
     end
-end)
+end
 
-local MirageCheck = Tabs.Info:AddParagraph({ Title = "Mirage Island", Content = "Status: " })
+local function UpdateKitsune()
+    local status = (game:GetService("Workspace").Map:FindFirstChild("KitsuneIsland") and "✅" or "❌")
+    if status ~= previousKitsuneStatus then
+        KitsuneCheck:SetDesc("Status: " .. status)
+        previousKitsuneStatus = status
+    end
+end
 
-local previousMirageStatus = ""
-spawn(function()
+local function UpdatePrehistoric()
+    local status = (game.Workspace._WorldOrigin.Locations:FindFirstChild("Prehistoric Island") and "✅" or "❌")
+    if status ~= previousPrehistoricStatus then
+        PrehistoricCheck:SetDesc("Status: " .. status)
+        previousPrehistoricStatus = status
+    end
+end
+
+local function UpdateFrozen()
+    local status = (game.Workspace._WorldOrigin.Locations:FindFirstChild("Frozen Dimension") and "✅" or "❌")
+    if status ~= previousFrozenStatus then
+        FrozenCheck:SetDesc("Status: " .. status)
+        previousFrozenStatus = status
+    end
+end
+
+local function UpdateCakePrince()
     pcall(function()
-        while true do
-            wait(1)            
-            local mirageIslandExists = game.Workspace._WorldOrigin.Locations:FindFirstChild('Mirage Island') ~= nil
-            local currentStatus = mirageIslandExists and '✅' or '❌'
-            if currentStatus ~= previousMirageStatus then
-                MirageCheck:SetDesc('Status: ' .. currentStatus)
-                previousMirageStatus = currentStatus
-            end
-        end
-    end)
-end)
-
-local KitsuneCheck = Tabs.Info:AddParagraph({ Title = "Kitsune Island", Content = "Status: " })
-
-local previousKitsuneStatus = ""
-spawn(function()
-    while task.wait(1) do
-        local currentStatus = game:GetService("Workspace").Map:FindFirstChild("KitsuneIsland") and '✅' or '❌'
-        if currentStatus ~= previousKitsuneStatus then
-            KitsuneCheck:SetDesc('Status: ' .. currentStatus)
-            previousKitsuneStatus = currentStatus
-        end
-    end
-end)
-
-local PrehistoricCheck = Tabs.Info:AddParagraph({ Title = "Prehistoric Island", Content = "Status: " })
-
-local previousPrehistoricStatus = ""
-task.spawn(function()
-    while task.wait(1) do
-        local currentStatus = game.Workspace._WorldOrigin.Locations:FindFirstChild("Prehistoric Island") and '✅' or '❌'
-        if currentStatus ~= previousPrehistoricStatus then
-            PrehistoricCheck:SetDesc("Status: " .. currentStatus)
-            previousPrehistoricStatus = currentStatus
-        end
-    end
-end)
-
-local FrozenCheck = Tabs.Info:AddParagraph({ Title = "Frozen Dimension", Content = "Status: " })
-
-local previousFrozenStatus = ""
-spawn(function()
-    while wait(1) do
-        local currentStatus = game.Workspace._WorldOrigin.Locations:FindFirstChild('Frozen Dimension') and '✅' or '❌'
-        if currentStatus ~= previousFrozenStatus then
-            FrozenCheck:SetDesc('Status: ' .. currentStatus)
-            previousFrozenStatus = currentStatus
-        end
-    end
-end)
-
-local CakePrinceStatus = Tabs.Info:AddParagraph({ Title = "Cake Prince", Content = "" })
-
-spawn(function()
-    while wait(1) do
         local cakePrince = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CakePrinceSpawner")
         local killStatus = "Cake Prince: ✅"
         if string.len(cakePrince) >= 86 then
@@ -1686,66 +1680,49 @@ spawn(function()
             killStatus = "Killed: " .. killCount
         end
         CakePrinceStatus:SetDesc(killStatus)
+    end)
+end
+
+local function UpdateRipIndra()
+    local exists = (game:GetService("ReplicatedStorage"):FindFirstChild("rip_indra True Form")
+        or game:GetService("Workspace").Enemies:FindFirstChild("rip_indra"))
+    local status = exists and "✅" or "❌"
+    if status ~= previousRipStatus then
+        RipIndraCheck:SetDesc("Status: " .. status)
+        previousRipStatus = status
     end
-end)
+end
 
-local RipIndraCheck = Tabs.Info:AddParagraph({ Title = "Rip Indra", Content = "Status: " })
-
-local previousRipStatus = ""
-spawn(function()
-    while wait(1) do
-        local currentStatus = (game:GetService("ReplicatedStorage"):FindFirstChild("rip_indra True Form") or 
-                               game:GetService("Workspace").Enemies:FindFirstChild("rip_indra")) and '✅' or '❌'
-        if currentStatus ~= previousRipStatus then
-            RipIndraCheck:SetDesc("Status: " .. currentStatus)
-            previousRipStatus = currentStatus
-        end
+local function UpdateDoughKing()
+    local exists = (game:GetService("ReplicatedStorage"):FindFirstChild("Dough King")
+        or game:GetService("Workspace").Enemies:FindFirstChild("Dough King"))
+    local status = exists and "✅" or "❌"
+    if status ~= previousDoughStatus then
+        DoughKingCheck:SetDesc("Status: " .. status)
+        previousDoughStatus = status
     end
-end)
+end
 
-local DoughKingCheck = Tabs.Info:AddParagraph({ Title = "Dough King", Content = "Status: " })
-
-local previousDoughStatus = ""
-spawn(function()
-    while wait(1) do
-        local currentStatus = (game:GetService("ReplicatedStorage"):FindFirstChild("Dough King") or 
-                               game:GetService("Workspace").Enemies:FindFirstChild("Dough King")) and '✅' or '❌'
-        if currentStatus ~= previousDoughStatus then
-            DoughKingCheck:SetDesc("Status: " .. currentStatus)
-            previousDoughStatus = currentStatus
-        end
+local function UpdateFullMoon()
+    local moonTextureId = game:GetService("Lighting").Sky.MoonTextureId
+    local moonStatus = "Moon: 0/5"
+    if moonTextureId == "http://www.roblox.com/asset/?id=9709149431" then
+        moonStatus = "Moon: 5/5 (Full Moon) ✅"
+    elseif moonTextureId == "http://www.roblox.com/asset/?id=9709149052" then
+        moonStatus = "Moon: 4/5"
+    elseif moonTextureId == "http://www.roblox.com/asset/?id=9709143733" then
+        moonStatus = "Moon: 3/5"
+    elseif moonTextureId == "http://www.roblox.com/asset/?id=9709150401" then
+        moonStatus = "Moon: 2/5"
+    elseif moonTextureId == "http://www.roblox.com/asset/?id=9709149680" then
+        moonStatus = "Moon: 1/5"
     end
-end)
+    FullMoonCheck:SetDesc(moonStatus)
+end
 
-local FullMoonCheck = Tabs.Info:AddParagraph({ Title = "Full Moon", Content = "" })
-
-task.spawn(function()
-    while task.wait(1) do
-        local moonTextureId = game:GetService("Lighting").Sky.MoonTextureId
-        local moonStatus = "Moon: 0/5"
-        
-        if moonTextureId == "http://www.roblox.com/asset/?id=9709149431" then
-            moonStatus = "Moon: 5/5 (Full Moon) ✅"
-        elseif moonTextureId == "http://www.roblox.com/asset/?id=9709149052" then
-            moonStatus = "Moon: 4/5"
-        elseif moonTextureId == "http://www.roblox.com/asset/?id=9709143733" then
-            moonStatus = "Moon: 3/5"
-        elseif moonTextureId == "http://www.roblox.com/asset/?id=9709150401" then
-            moonStatus = "Moon: 2/5"
-        elseif moonTextureId == "http://www.roblox.com/asset/?id=9709149680" then
-            moonStatus = "Moon: 1/5"
-        end
-        
-        FullMoonCheck:SetDesc(moonStatus)
-    end
-end)
-
-local LegendarySwordCheck = Tabs.Info:AddParagraph({ Title = "Legendary Sword", Content = "Status: " })
-
-spawn(function()
-    while wait(1) do
-        local swordStatus = "Not Found"
-        
+local function UpdateLegendarySword()
+    local swordStatus = "Not Found"
+    pcall(function()
         if game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("LegendarySwordDealer", "1") then
             swordStatus = "Shisui ✅"
         elseif game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("LegendarySwordDealer", "2") then
@@ -1753,19 +1730,36 @@ spawn(function()
         elseif game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("LegendarySwordDealer", "3") then
             swordStatus = "Saddi ✅"
         end
-        
-        LegendarySwordCheck:SetDesc(swordStatus)
-    end
-end)
+    end)
+    LegendarySwordCheck:SetDesc(swordStatus)
+end
 
-local BoneCount = Tabs.Info:AddParagraph({ Title = "Bone", Content = "" })
-
-spawn(function()
-    while wait(1) do
+local function UpdateBone()
+    pcall(function()
         local bones = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Bones", "Check")
         BoneCount:SetDesc("You Have: " .. tostring(bones) .. " Bones")
+    end)
+end
+
+-- MOT vong lap duy nhat thay cho 12 task.spawn rieng le
+-- giam ~11 coroutine thuc giac moi giay -> nhe may hon
+task.spawn(function()
+    while task.wait(1) do
+        pcall(UpdateOS)
+        pcall(UpdateGameTime)
+        pcall(UpdateMirage)
+        pcall(UpdateKitsune)
+        pcall(UpdatePrehistoric)
+        pcall(UpdateFrozen)
+        pcall(UpdateCakePrince)
+        pcall(UpdateRipIndra)
+        pcall(UpdateDoughKing)
+        pcall(UpdateFullMoon)
+        pcall(UpdateLegendarySword)
+        pcall(UpdateBone)
     end
 end)
+
 local RFSubmarineWorkerSpeak = replicated.Modules.Net["RF/SubmarineWorkerSpeak"]
 WeaponDropdown = Tabs.Main:AddDropdown("Dropdown_Select_Weapon", {
     Title = "Select Weapon",
@@ -4036,6 +4030,17 @@ end)
 
 
 Tabs.Settings:AddSection("Settings / Configure")
+
+Tabs.Settings:AddToggle("Toggle_Low_End_Mode", {
+    Title = "Low End Mode (Boost FPS)",
+    Description = "Giam do hoa cho may yeu - tat shadow, hieu ung, giam quality",
+    Default = false,
+    Callback = function(Value)
+        getgenv().LowEndMode = Value
+        ApplyLowEnd()
+    end
+})
+
 
 Initialize = Tabs.Settings:AddToggle("Toggle_Fast_Attack", {
 Title = "Fast Attack", 
