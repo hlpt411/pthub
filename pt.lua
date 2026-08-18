@@ -11957,7 +11957,7 @@ local Characters = SafeWaitForChild(Workspace, "Characters")
 local Modules = SafeWaitForChild(ReplicatedStorage, "Modules")
 local Net = SafeWaitForChild(Modules, "Net")
 
-FastAttackModule.Rate = 0.000000002
+FastAttackModule.Rate = 0.01
 FastAttackModule.Enabled = true
 
 function FastAttackModule.IsAlive(target)
