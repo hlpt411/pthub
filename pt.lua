@@ -1429,7 +1429,7 @@ toggleButton.Size = UDim2.new(0, 50, 0, 50)
 toggleButton.Position = UDim2.new(0.1, 0, 0.5, 0)
 toggleButton.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 toggleButton.BackgroundTransparency = 0.2
-toggleButton.Image = "rbxassetid://131983967040060" -- Ảnh logo PT Hub
+toggleButton.Image = "rbxassetid://131983967040060"
 toggleButton.Parent = screenGui
 
 local uiCorner = Instance.new("UICorner")
