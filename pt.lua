@@ -2411,7 +2411,7 @@ end
 local imageButton = Instance.new("ImageButton")
 imageButton.Size = UDim2.new(0, 60, 0, 60)
 imageButton.Position = UDim2.new(0.20, 0, 0.20, 0)
-imageButton.Image = "rbxassetid://125855997611362"
+imageButton.Image = "rbxassetid://3204395640"
 imageButton.BackgroundTransparency = 1
 imageButton.Parent = screenGui
 
@@ -4449,6 +4449,58 @@ Setting:AddTextBox({
         end
     end,
 });
+
+-- ============================================================
+--  NOVO: FLY SETTINGS (SLIDERS PARA VELOCIDADE)
+-- ============================================================
+Setting:AddSection({"Fly Settings"})
+
+-- Inicializar variáveis globais
+_G.FlySpeed = _G.FlySpeed or 90
+_G.FlyUpForce = _G.FlyUpForce or 50
+
+-- Tenta usar AddSlider se disponível, senão usa AddTextBox
+local function AddFlySlider(name, desc, min, max, default, globalVar)
+    local success, slider = pcall(function()
+        return Setting:AddSlider({
+            Name = name,
+            Description = desc,
+            Min = min,
+            Max = max,
+            Default = default,
+            Callback = function(value)
+                _G[globalVar] = value
+                _G.SaveData[globalVar] = value
+                SaveSettings()
+            end
+        })
+    end)
+    if not success then
+        -- Fallback para TextBox
+        Setting:AddTextBox({
+            Name = name,
+            Description = desc .. " (digite o valor)",
+            PlaceHolder = tostring(default),
+            Default = tostring(default),
+            Callback = function(value)
+                local num = tonumber(value)
+                if num then
+                    _G[globalVar] = num
+                    _G.SaveData[globalVar] = num
+                    SaveSettings()
+                end
+            end
+        })
+    end
+end
+
+AddFlySlider("Fly Horizontal Speed", "Velocidade de deslocamento horizontal", 10, 500, _G.FlySpeed, "FlySpeed")
+AddFlySlider("Fly Lift Force", "Força de subida vertical", 10, 200, _G.FlyUpForce, "FlyUpForce")
+
+-- ============================================================
+-- FIM DAS NOVAS ADIÇÕES
+-- ============================================================
+
 Others:AddSection({"Fishing"})
 local RS = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -8022,6 +8074,10 @@ spawn(function()
 		end);
 	end;
 end);
+
+-- ============================================================
+-- FLY SYSTEM (MODIFICADO PARA USAR SLIDERS)
+-- ============================================================
 Dojo:AddToggle({
 	Name = "Fly",
 	Description = "Fly controlado pelo analógico ( Subida Automática )",
@@ -8036,9 +8092,6 @@ local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local flying = false
-
-local speed = 90
-local yForce = 50
 
 local bodyGyro, bodyVelocity
 local flyConn
@@ -8071,8 +8124,8 @@ local function startFly()
 		local velX, velZ = 0, 0
 
 		if moveDir.Magnitude > 0 then
-			velX = moveDir.Unit.X * speed
-			velZ = moveDir.Unit.Z * speed
+			velX = moveDir.Unit.X * (_G.FlySpeed or 90)
+			velZ = moveDir.Unit.Z * (_G.FlySpeed or 90)
 
 			bodyGyro.CFrame = CFrame.new(
 				root.Position,
@@ -8082,7 +8135,7 @@ local function startFly()
 
 		bodyVelocity.Velocity = Vector3.new(
 			velX,
-			yForce,
+			_G.FlyUpForce or 50,
 			velZ
 		)
 	end)
@@ -8116,6 +8169,7 @@ task.spawn(function()
 		end
 	end
 end)
+
 Dojo:AddToggle({
 	Name = "Tween to Draco Trials",
 	Description = "",
