@@ -2411,7 +2411,7 @@ end
 local imageButton = Instance.new("ImageButton")
 imageButton.Size = UDim2.new(0, 60, 0, 60)
 imageButton.Position = UDim2.new(0.20, 0, 0.20, 0)
-imageButton.Image = "rbxassetid://3204395640"
+imageButton.Image = "rbxassetid://125855997611362"
 imageButton.BackgroundTransparency = 1
 imageButton.Parent = screenGui
 
