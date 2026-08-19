@@ -6099,7 +6099,7 @@ spawn(function()
 end)
 
 Tabs.Quests:AddSection("Buso/Aura Colours")
-Q = Tabs.Quests:AddToggle("Toggle_Auto_Teleport_Barista_Cousin", {
+Q = Tabs.Quests:AddToggle("Toggle_Auto_Teleport_Blox_Fruit_Gacha", {
 Title = "Auto Teleport Blox Fruit Gacha", 
 Description = "", 
 Default = false,
@@ -6111,7 +6111,7 @@ spawn(function()
     if _G.Tp_MasterA then
 	  pcall(function()
 	    for _,v in pairs(replicated.NPCs:GetChildren()) do
-	    if v.Name == "Blox Fruit Gacha" or v.Name == "Cousin" then _tp(v.HumanoidRootPart.CFrame) end
+	    if v.Name == "Blox Fruit Gacha" then _tp(v.HumanoidRootPart.CFrame) end
         end   	   
 	 end)
     end
@@ -9176,7 +9176,7 @@ end
 HakiClorEsp = function()
     if ColorEsp then     
         for _,v in pairs(replicated.NPCs:GetChildren()) do
-            if v.Name == "Blox Fruit Gacha" or v.Name == "Cousin" then
+            if v.Name == "Blox Fruit Gacha" then
                 if not workspace:FindFirstChild("Gay") then
                     Gay = Instance.new("Part")
                     Gay.Name = "Gay"
@@ -9720,15 +9720,14 @@ Callback = function(Value)
   _G.Random_Auto = Value
 end})
 
--- Tim NPC gacha (Blox Fruit Gacha, truoc day la Cousin / Blox Fruits Dealer Cousin).
--- NPC nam trong workspace.NPCs hoac ReplicatedStorage.NPCs tuy Sea.
--- So khớp theo ten, khong phan biet hoa thuong, de chiu moi bien the (Zioles skin...).
+-- Tim NPC "Blox Fruit Gacha" (nguoi ban trai NGAU NHIEN).
+-- KHONG phai "Blox Fruit Dealer" (nguoi ban trai CO SAN theo stock).
+-- NPC nam trong workspace.NPCs (Sea 1) hoac ReplicatedStorage.NPCs (Sea 2/3).
 local function FindGachaNpc()
     for _, folder in pairs({workspace:FindFirstChild("NPCs"), replicated:FindFirstChild("NPCs")}) do
         if folder then
             for _, v in pairs(folder:GetChildren()) do
-                local n = (v.Name or ""):lower()
-                if n:find("gacha") or n:find("cousin") or n:find("zioles") or n:find("fruit dealer") then
+                if (v.Name or ""):lower() == "blox fruit gacha" then
                     return v
                 end
             end
@@ -9743,10 +9742,10 @@ task.spawn(function()
   while task.wait(0.5) do
     if _G.Random_Auto then
       pcall(function()
-        local cousin = FindGachaNpc()
-        if not cousin then return end
+        local gachaNpc = FindGachaNpc()
+        if not gachaNpc then return end
 
-        local npcRoot = cousin:FindFirstChild("HumanoidRootPart")
+        local npcRoot = gachaNpc:FindFirstChild("HumanoidRootPart")
         if not npcRoot then return end
 
         local char = plr.Character
@@ -9764,7 +9763,7 @@ task.spawn(function()
 
         teleporting = false
 
-        -- Dung gan NPC roi. Mua trai ngau nhien (remote "Cousin","Buy").
+        -- Dung gan NPC roi. Mua trai ngau nhien (remote server la "Cousin","Buy").
         -- Gacha co cooldown 2h va yeu cau level 50+, nen chi goi lai sau 5s
         -- de khong spam remote vo ich khi dang trong cooldown.
         if tick() - lastBuy >= 5 then
