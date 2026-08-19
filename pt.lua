@@ -179,6 +179,8 @@ statsSetings = function(Num, value)
 end
 BringEnemy = function(Mon)
     if not _B then return end
+    -- Tang khoang cach gom quai (chinh duoc qua getgenv().BringRange)
+    local BRING_RANGE = getgenv().BringRange or 30000
 
     local char = plr.Character
     if not Mon then
@@ -230,7 +232,7 @@ BringEnemy = function(Mon)
                 local alive, root, hum = Mobs(v)
                 if alive and v.Name == Mon.Name then
                     local distance = (root.Position - targetPos).Magnitude
-                    if distance <= 3000 then
+                    if distance <= BRING_RANGE then
                         -- Giu mob bang BodyVelocity
                         local bv = root:FindFirstChild("BodyVelocity")
                         if not bv then
@@ -280,6 +282,25 @@ ReleaseBringMobs = function()
         end)
     end
 end
+
+-- Vong lap gom quai LIEN TUC: khi bat Bring Mobs, keo mob tu xa ve farm target
+-- (mob co attribute "Locked" la mob dang bi Attack.Kill) moi 0.3s mot lan
+task.spawn(function()
+    while task.wait(0.3) do
+        if _B then
+            pcall(function()
+                local target = nil
+                for _, v in ipairs(workspace.Enemies:GetChildren()) do
+                    if v:GetAttribute("Locked") then
+                        target = v
+                        break
+                    end
+                end
+                BringEnemy(target)
+            end)
+        end
+    end
+end)
 Useskills = function(weapon, skill)
   if weapon == "Melee" then
     weaponSc("Melee")
@@ -9713,16 +9734,42 @@ end)
 
 RandomFF = Tabs.Raids:AddToggle("Toggle_Auto_Random_Fruit", {
 Title = "Auto Random Fruit", 
-Description = "", 
+Description = "Tu dong teleport den Barista Cousin va mua trai ngau nhien",
 Default = false,
 Callback = function(Value)
   _G.Random_Auto = Value
 end})
-spawn(function()
-  while wait(Sec) do
-   	pcall(function()
-      if _G.Random_Auto then replicated.Remotes.CommF_:InvokeServer("Cousin","Buy") end 
-    end)
+task.spawn(function()
+  while task.wait(1) do
+    if _G.Random_Auto then
+      pcall(function()
+        -- 1) Tim NPC Barista Cousin (ban trai ngau nhien, Sea 2 - Cafe)
+        local cousin = nil
+        for _, v in pairs(replicated.NPCs:GetChildren()) do
+          if v.Name == "Barista Cousin" then
+            cousin = v
+            break
+          end
+        end
+        if not cousin then return end
+
+        local npcRoot = cousin:FindFirstChild("HumanoidRootPart")
+        if not npcRoot then return end
+
+        local char = plr.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+
+        -- 2) Dung can NPC roi moi mua (remote yeu cau khoang cach gan)
+        if (hrp.Position - npcRoot.Position).Magnitude > 15 then
+          _tp(npcRoot.CFrame)
+          return
+        end
+
+        -- 3) Mua trai ngau nhien
+        replicated.Remotes.CommF_:InvokeServer("Cousin", "Buy")
+      end)
+    end
   end
 end)
 DropF = Tabs.Raids:AddToggle("Toggle_Auto_Drop_Fruit", {
