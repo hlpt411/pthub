@@ -179,11 +179,12 @@ statsSetings = function(Num, value)
 end
 BringEnemy = function(Mon)
     if not _B then return end
-    if not Mon then 
-        -- Tự động tìm mob nếu không có Mon
-        local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+
+    local char = plr.Character
+    if not Mon then
+        -- Tu dong tim mob gan nhat neu khong co Mon
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
         if not hrp then return end
-        
         local closestDist = math.huge
         for _, enemy in ipairs(workspace.Enemies:GetChildren()) do
             local hum = enemy:FindFirstChildOfClass("Humanoid")
@@ -198,37 +199,39 @@ BringEnemy = function(Mon)
         end
         if not Mon then return end
     end
-    
-    local AreaMob = false
-    
+
     local function Mobs(enemy)
         local hum = enemy:FindFirstChildOfClass("Humanoid")
         local root = enemy:FindFirstChild("HumanoidRootPart")
         return hum and root and hum.Health > 0, root, hum
     end
 
+    -- Kiem tra network owner: bo dieu kien Velocity > 0 de mob dung im van gom duoc
     local function Network(part)
         if isnetworkowner then
             return isnetworkowner(part)
         end
-        return part.ReceiveAge == 0 and not part.Anchored and part.Velocity.Magnitude > 0
+        return part.ReceiveAge == 0 and not part.Anchored
     end
-    
+
     pcall(function()
-        -- Tăng simulation radius
-        if sethiddenproperty then 
+        -- Tang simulation radius de mob xa khong bi despawn
+        if sethiddenproperty then
             sethiddenproperty(plr, "SimulationRadius", math.huge)
         end
-        
-        local targetPos = Mon.HumanoidRootPart.Position
-        
+
+        local monRoot = Mon:FindFirstChild("HumanoidRootPart")
+        local monHum = Mon:FindFirstChildOfClass("Humanoid")
+        if not monRoot or not monHum then return end
+        local targetPos = monRoot.Position
+
         for _, v in ipairs(workspace.Enemies:GetChildren()) do
             if v ~= Mon then
                 local alive, root, hum = Mobs(v)
                 if alive and v.Name == Mon.Name then
                     local distance = (root.Position - targetPos).Magnitude
                     if distance <= 3000 then
-                        -- Tạo BodyVelocity để giữ mob
+                        -- Giu mob bang BodyVelocity
                         local bv = root:FindFirstChild("BodyVelocity")
                         if not bv then
                             bv = Instance.new("BodyVelocity")
@@ -237,17 +240,13 @@ BringEnemy = function(Mon)
                             bv.Velocity = Vector3.zero
                             bv.Parent = root
                         end
-                        
-                        if distance <= 10 then
-                            AreaMob = true
-                        end
-                        
-                        -- Kéo mob lại nếu là network owner và chưa ở gần
-                        if not AreaMob and Network(root) then
+
+                        -- Gom TUNG mob ve vi tri mob chinh (fix: het lam chung 1 flag)
+                        if distance > 10 and Network(root) then
                             root.CFrame = CFrame.new(targetPos)
                         end
-                        
-                        -- Tắt va chạm và ngăn di chuyển
+
+                        -- Dong bang mob: tat va cham, ngan di chuyen
                         root.CanCollide = false
                         hum.WalkSpeed = 0
                         hum.JumpPower = 0
@@ -255,14 +254,31 @@ BringEnemy = function(Mon)
                 end
             end
         end
-        
-        -- Xử lý mob chính
-        if Mon and Mon:FindFirstChild("HumanoidRootPart") then
-            Mon.HumanoidRootPart.CanCollide = false
-            Mon.Humanoid.WalkSpeed = 0
-            Mon.Humanoid.JumpPower = 0
-        end
+
+        -- Dong bang mob chinh
+        monRoot.CanCollide = false
+        monHum.WalkSpeed = 0
+        monHum.JumpPower = 0
     end)
+end
+
+-- Go trang thai dong bang khi tat Bring Mobs
+ReleaseBringMobs = function()
+    for _, v in ipairs(workspace.Enemies:GetChildren()) do
+        pcall(function()
+            local root = v:FindFirstChild("HumanoidRootPart")
+            local hum = v:FindFirstChildOfClass("Humanoid")
+            if root then
+                local bv = root:FindFirstChild("BodyVelocity")
+                if bv then bv:Destroy() end
+                root.CanCollide = true
+            end
+            if hum then
+                hum.WalkSpeed = 16
+                hum.JumpPower = 50
+            end
+        end)
+    end
 end
 Useskills = function(weapon, skill)
   if weapon == "Melee" then
@@ -1467,7 +1483,7 @@ toggleButton.AutoButtonColor = false -- tắt flash mặc định, dùng tween c
 toggleButton.Parent = screenGui
 
 local uiCorner = Instance.new("UICorner")
-uiCorner.CornerRadius = UDim.new(1, 0)
+uiCorner.CornerRadius = UDim.new(0, 0) -- hinh vuong (bo goc tron)
 uiCorner.Parent = toggleButton
 
 local uiStroke = Instance.new("UIStroke")
@@ -4055,6 +4071,7 @@ Description = "",
 Default = true,
 Callback = function(Value)
   _B = Value
+  if not Value then ReleaseBringMobs() end
 end})
 Tabs.Settings:AddToggle("Toggle_Auto_Hop_Server_with_time", {
     Title = "Auto Hop Server with time",
