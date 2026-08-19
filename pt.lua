@@ -28,6 +28,7 @@ do
   Sec = 0.1
   ClickState = 0
   Num_self = 25
+  _B = true -- Bring Mobs bat san (gom quai hoat dong ngay khi load)
 end
 
 repeat local start = plr.PlayerGui:WaitForChild("Main"):WaitForChild("Loading") and game:IsLoaded() wait() until start
@@ -177,18 +178,25 @@ statsSetings = function(Num, value)
     end
   end
 end
+-- Tang SimulationRadius de client nam quyen network owner cua mob xa (gom duoc mob)
+BoostSimulationRadius = function(radius)
+    local p = game.Players.LocalPlayer
+    local r = radius or getgenv().BringRadius or 3000
+    pcall(function() p.SimulationRadius = r end)
+    pcall(function() if sethiddenproperty then sethiddenproperty(p, "SimulationRadius", r) end end)
+    pcall(function() if set_hidden_property then set_hidden_property(p, "SimulationRadius", r) end end)
+end
+
 BringEnemy = function(Mon)
     if not _B then return end
-    -- Tang khoang cach gom quai (chinh duoc qua getgenv().BringRange)
-    local BRING_RANGE = getgenv().BringRange or 30000
 
     local char = plr.Character
     if not Mon then
-        -- Tu dong tim mob gan nhat neu khong co Mon
+        -- Tu dong tim mob gan nhat
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
         if not hrp then return end
         local closestDist = math.huge
-        for _, enemy in ipairs(workspace.Enemies:GetChildren()) do
+        for _, enemy in pairs(workspace.Enemies:GetChildren()) do
             local hum = enemy:FindFirstChildOfClass("Humanoid")
             local root = enemy:FindFirstChild("HumanoidRootPart")
             if hum and root and hum.Health > 0 then
@@ -202,71 +210,42 @@ BringEnemy = function(Mon)
         if not Mon then return end
     end
 
-    local function Mobs(enemy)
-        local hum = enemy:FindFirstChildOfClass("Humanoid")
-        local root = enemy:FindFirstChild("HumanoidRootPart")
-        return hum and root and hum.Health > 0, root, hum
-    end
+    -- Chiem network owner moi lan goi de mob xa nam trong tam kiem soat
+    BoostSimulationRadius()
 
-    -- Kiem tra network owner: bo dieu kien Velocity > 0 de mob dung im van gom duoc
-    local function Network(part)
-        if isnetworkowner then
-            return isnetworkowner(part)
-        end
-        return part.ReceiveAge == 0 and not part.Anchored
-    end
+    local monRoot = Mon:FindFirstChild("HumanoidRootPart")
+    if not monRoot then return end
+    local targetCF = monRoot.CFrame
+    local targetPos = monRoot.Position
+    local mobName = Mon.Name
+    local BRING_RANGE = getgenv().BringRange or 3000
 
-    pcall(function()
-        -- Tang simulation radius de mob xa khong bi despawn
-        if sethiddenproperty then
-            sethiddenproperty(plr, "SimulationRadius", math.huge)
-        end
-
-        local monRoot = Mon:FindFirstChild("HumanoidRootPart")
-        local monHum = Mon:FindFirstChildOfClass("Humanoid")
-        if not monRoot or not monHum then return end
-        local targetPos = monRoot.Position
-
-        for _, v in ipairs(workspace.Enemies:GetChildren()) do
-            if v ~= Mon then
-                local alive, root, hum = Mobs(v)
-                if alive and v.Name == Mon.Name then
-                    local distance = (root.Position - targetPos).Magnitude
-                    if distance <= BRING_RANGE then
-                        -- Giu mob bang BodyVelocity
-                        local bv = root:FindFirstChild("BodyVelocity")
-                        if not bv then
-                            bv = Instance.new("BodyVelocity")
-                            bv.Name = "BodyVelocity"
-                            bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-                            bv.Velocity = Vector3.zero
-                            bv.Parent = root
-                        end
-
-                        -- Gom TUNG mob ve vi tri mob chinh (fix: het lam chung 1 flag)
-                        if distance > 10 and Network(root) then
-                            root.CFrame = CFrame.new(targetPos)
-                        end
-
-                        -- Dong bang mob: tat va cham, ngan di chuyen
-                        root.CanCollide = false
-                        hum.WalkSpeed = 0
-                        hum.JumpPower = 0
+    for _, v in pairs(workspace.Enemies:GetChildren()) do
+        if v.Name == mobName then
+            local root = v:FindFirstChild("HumanoidRootPart")
+            local hum = v:FindFirstChildOfClass("Humanoid")
+            if root and hum and hum.Health > 0 then
+                local distance = (root.Position - targetPos).Magnitude
+                if distance <= BRING_RANGE then
+                    -- Keo mob ve vi tri mob dang farm (chi hieu luc khi la network owner)
+                    if distance > 5 then
+                        pcall(function()
+                            root.CFrame = targetCF
+                        end)
                     end
+                    -- Dong bang mob: tat va cham, ngan di chuyen
+                    root.CanCollide = false
+                    hum.WalkSpeed = 0
+                    hum.JumpPower = 0
                 end
             end
         end
-
-        -- Dong bang mob chinh
-        monRoot.CanCollide = false
-        monHum.WalkSpeed = 0
-        monHum.JumpPower = 0
-    end)
+    end
 end
 
--- Go trang thai dong bang khi tat Bring Mobs
+-- Tra trang thai binh thuong khi tat Bring Mobs
 ReleaseBringMobs = function()
-    for _, v in ipairs(workspace.Enemies:GetChildren()) do
+    for _, v in pairs(workspace.Enemies:GetChildren()) do
         pcall(function()
             local root = v:FindFirstChild("HumanoidRootPart")
             local hum = v:FindFirstChildOfClass("Humanoid")
@@ -283,15 +262,17 @@ ReleaseBringMobs = function()
     end
 end
 
--- Vong lap gom quai LIEN TUC: khi bat Bring Mobs, keo mob tu xa ve farm target
--- (mob co attribute "Locked" la mob dang bi Attack.Kill) moi 0.3s mot lan
+-- Vong lap gom quai lien tuc: tim mob dang farm (co attribute "Locked")
+-- hoac mob gan nhat, roi keo dong loai ve. Chay lai moi 0.25s.
 task.spawn(function()
-    while task.wait(0.3) do
+    while task.wait(0.25) do
         if _B then
             pcall(function()
+                BoostSimulationRadius()
                 local target = nil
-                for _, v in ipairs(workspace.Enemies:GetChildren()) do
-                    if v:GetAttribute("Locked") then
+                for _, v in pairs(workspace.Enemies:GetChildren()) do
+                    local hum = v:FindFirstChildOfClass("Humanoid")
+                    if hum and hum.Health > 0 and v:GetAttribute("Locked") then
                         target = v
                         break
                     end
@@ -300,8 +281,7 @@ task.spawn(function()
             end)
         end
     end
-end)
-Useskills = function(weapon, skill)
+end)Useskills = function(weapon, skill)
   if weapon == "Melee" then
     weaponSc("Melee")
     if skill == "Z" then
@@ -6120,7 +6100,7 @@ end)
 
 Tabs.Quests:AddSection("Buso/Aura Colours")
 Q = Tabs.Quests:AddToggle("Toggle_Auto_Teleport_Barista_Cousin", {
-Title = "Auto Teleport Barista Cousin", 
+Title = "Auto Teleport Blox Fruit Gacha", 
 Description = "", 
 Default = false,
 Callback = function(Value)
@@ -6131,7 +6111,7 @@ spawn(function()
     if _G.Tp_MasterA then
 	  pcall(function()
 	    for _,v in pairs(replicated.NPCs:GetChildren()) do
-	    if v.Name == "Barista Cousin" then _tp(v.HumanoidRootPart.CFrame) end
+	    if v.Name == "Blox Fruit Gacha" or v.Name == "Cousin" then _tp(v.HumanoidRootPart.CFrame) end
         end   	   
 	 end)
     end
@@ -9196,7 +9176,7 @@ end
 HakiClorEsp = function()
     if ColorEsp then     
         for _,v in pairs(replicated.NPCs:GetChildren()) do
-            if v.Name == "Barista Cousin" then
+            if v.Name == "Blox Fruit Gacha" or v.Name == "Cousin" then
                 if not workspace:FindFirstChild("Gay") then
                     Gay = Instance.new("Part")
                     Gay.Name = "Gay"
@@ -9734,23 +9714,33 @@ end)
 
 RandomFF = Tabs.Raids:AddToggle("Toggle_Auto_Random_Fruit", {
 Title = "Auto Random Fruit", 
-Description = "Tu dong teleport den Barista Cousin va mua trai ngau nhien",
+Description = "Tu dong tim NPC Blox Fruit Gacha, teleport va mua trai ngau nhien",
 Default = false,
 Callback = function(Value)
   _G.Random_Auto = Value
 end})
+
+-- Tim NPC gacha (Blox Fruit Gacha, truoc day la Cousin/Barista Cousin)
+-- NPC nam o workspace.NPCs (Sea 1) hoac replicated.NPCs (Sea 2/3)
+local function FindGachaNpc()
+    for _, folder in pairs({workspace:FindFirstChild("NPCs"), replicated:FindFirstChild("NPCs")}) do
+        if folder then
+            for _, v in pairs(folder:GetChildren()) do
+                local n = v.Name or ""
+                if n == "Blox Fruit Gacha" or n == "Cousin" or n:find("Gacha") or n:find("Cousin") then
+                    return v
+                end
+            end
+        end
+    end
+    return nil
+end
+
 task.spawn(function()
   while task.wait(1) do
     if _G.Random_Auto then
       pcall(function()
-        -- 1) Tim NPC Barista Cousin (ban trai ngau nhien, Sea 2 - Cafe)
-        local cousin = nil
-        for _, v in pairs(replicated.NPCs:GetChildren()) do
-          if v.Name == "Barista Cousin" then
-            cousin = v
-            break
-          end
-        end
+        local cousin = FindGachaNpc()
         if not cousin then return end
 
         local npcRoot = cousin:FindFirstChild("HumanoidRootPart")
@@ -9760,13 +9750,13 @@ task.spawn(function()
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
         if not hrp then return end
 
-        -- 2) Dung can NPC roi moi mua (remote yeu cau khoang cach gan)
+        -- Dung gan NPC roi moi mua (remote server-side yeu cau khoang cach)
         if (hrp.Position - npcRoot.Position).Magnitude > 15 then
           _tp(npcRoot.CFrame)
           return
         end
 
-        -- 3) Mua trai ngau nhien
+        -- Mua trai ngau nhien (remote van ten "Cousin")
         replicated.Remotes.CommF_:InvokeServer("Cousin", "Buy")
       end)
     end
